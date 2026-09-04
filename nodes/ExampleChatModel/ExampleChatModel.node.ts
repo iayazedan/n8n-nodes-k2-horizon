@@ -10,7 +10,7 @@ export class ExampleChatModel implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Example Chat Model',
 		name: 'exampleChatModel',
-		icon: { light: 'file:../../icons/example.svg', dark: 'file:../../icons/example.dark.svg' },
+		icon: { light: 'file:../../icons/k2horizon.svg', dark: 'file:../../icons/k2horizon.dark.svg' },
 		group: ['transform'],
 		version: [1],
 		description: 'Chat model node for OpenAI API compatible providers',
@@ -34,7 +34,7 @@ export class ExampleChatModel implements INodeType {
 		outputNames: ['Model'],
 		credentials: [
 			{
-				name: 'exampleApi',
+				name: 'k2HorizonApi',
 				required: true,
 			},
 		],
@@ -69,7 +69,7 @@ export class ExampleChatModel implements INodeType {
 	};
 
 	async supplyData(this: ISupplyDataFunctions, itemIndex: number) {
-		const credentials = await this.getCredentials('exampleApi');
+		const credentials = await this.getCredentials('k2HorizonApi');
 		const modelName = this.getNodeParameter('model', itemIndex) as string;
 		const options = this.getNodeParameter('options', itemIndex, {}) as ModelOptions;
 

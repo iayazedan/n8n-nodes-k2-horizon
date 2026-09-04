@@ -7,12 +7,14 @@ import type {
 	Icon,
 } from 'n8n-workflow';
 
-export class ExampleApi implements ICredentialType {
-	name = 'exampleApi';
+export class K2HorizonApi implements ICredentialType {
+	name = 'k2HorizonApi';
 
-	displayName = 'Example API';
+	displayName = 'K2 Horizon (IFM) API';
 
-	icon: Icon = { light: 'file:../icons/example.svg', dark: 'file:../icons/example.dark.svg' };
+	documentationUrl = 'https://docs.ifm.ai';
+
+	icon: Icon = { light: 'file:../icons/k2horizon.svg', dark: 'file:../icons/k2horizon.dark.svg' };
 
 	properties: INodeProperties[] = [
 		{
@@ -22,16 +24,20 @@ export class ExampleApi implements ICredentialType {
 			typeOptions: { password: true },
 			required: true,
 			default: '',
+			description: 'Created in the IFM Platform. Keys look like "IFM-xf…".',
 		},
 		{
 			displayName: 'Base URL',
 			name: 'url',
 			type: 'string',
-			default: '',
-			description: 'Override the default base URL for the API',
+			default: 'https://api.ifm.ai/v1',
+			description:
+				'OpenAI-compatible base URL. Leave as-is for the hosted IFM gateway, or point it at your own SGLang or vLLM deployment — only the 375B model is hosted, but every K2 Horizon size is released as open weights.',
 		},
 	];
 
+	// Powers the "Test" button. GET /models is the standard OpenAI-compatible
+	// health check: it costs no tokens and fails loudly on a bad key or URL.
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials?.url}}',
