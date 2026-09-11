@@ -35,6 +35,17 @@ import type { IHttpRequestMethods } from 'n8n-workflow';
 
 export type ReasoningEffort = 'low' | 'medium' | 'high';
 
+/**
+ * Constrains `content` only -- the reasoning trace stays free-form prose, so
+ * the two have to be parsed separately.
+ */
+export type ResponseFormat =
+	| { type: 'json_object' }
+	| {
+			type: 'json_schema';
+			json_schema: { name: string; strict: boolean; schema: Record<string, unknown> };
+	  };
+
 interface WireToolCall {
 	id: string;
 	type: 'function';
@@ -55,6 +66,7 @@ interface WireRequest {
 	messages: WireMessage[];
 	stream: boolean;
 	chat_template_kwargs?: { reasoning_effort: ReasoningEffort };
+	response_format?: ResponseFormat;
 	tools?: Array<{
 		type: 'function';
 		function: { name: string; description?: string; parameters: unknown };
@@ -221,6 +233,7 @@ export interface K2HorizonModelConfig extends ChatModelConfig {
 	apiKey?: string;
 	baseURL?: string;
 	reasoningEffort?: ReasoningEffort;
+	responseFormat?: ResponseFormat;
 }
 
 export interface RequestConfig {
@@ -264,6 +277,7 @@ export class K2HorizonChatModelClient extends BaseChatModel<K2HorizonModelConfig
 			...(config.reasoningEffort
 				? { chat_template_kwargs: { reasoning_effort: config.reasoningEffort } }
 				: {}),
+			...(config.responseFormat ? { response_format: config.responseFormat } : {}),
 			...(tools ? { tools } : {}),
 			temperature: config.temperature,
 			top_p: config.topP,

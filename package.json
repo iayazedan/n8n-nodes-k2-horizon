@@ -45,6 +45,7 @@
 			"dist/credentials/K2HorizonApi.credentials.js"
 		],
 		"nodes": [
+			"dist/nodes/K2Horizon/K2Horizon.node.js",
 			"dist/nodes/K2HorizonChatModel/K2HorizonChatModel.node.js"
 		]
 	},
