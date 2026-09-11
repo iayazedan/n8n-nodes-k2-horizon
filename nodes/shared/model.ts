@@ -33,7 +33,7 @@ import type { IHttpRequestMethods } from 'n8n-workflow';
  * dependencies, since BaseChatModel comes from the peer SDK that n8n supplies.
  */
 
-type ReasoningEffort = 'low' | 'medium' | 'high';
+export type ReasoningEffort = 'low' | 'medium' | 'high';
 
 interface WireToolCall {
 	id: string;
@@ -317,10 +317,7 @@ export class K2HorizonChatModelClient extends BaseChatModel<K2HorizonModelConfig
 		};
 	}
 
-	async *stream(
-		messages: Message[],
-		config?: K2HorizonModelConfig,
-	): AsyncIterable<StreamChunk> {
+	async *stream(messages: Message[], config?: K2HorizonModelConfig): AsyncIterable<StreamChunk> {
 		const merged = this.mergeConfig(config) as K2HorizonModelConfig;
 		const body = this.buildBody(messages, merged, true);
 

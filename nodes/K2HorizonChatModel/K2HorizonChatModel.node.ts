@@ -2,28 +2,17 @@ import { randomUUID } from 'node:crypto';
 
 import { supplyModel } from '@n8n/ai-node-sdk';
 
-import { K2HorizonChatModelClient } from './model';
-import type {
-	ILoadOptionsFunctions,
-	INodePropertyOptions,
-	INodeType,
-	INodeTypeDescription,
-	ISupplyDataFunctions,
-} from 'n8n-workflow';
+import {
+	CREDENTIAL_NAME,
+	createRequests,
+	getBaseUrl,
+	getModels,
+	modelProperty,
+	reasoningEffortProperty,
+} from '../shared/common';
+import { K2HorizonChatModelClient, type ReasoningEffort } from '../shared/model';
+import type { INodeType, INodeTypeDescription, ISupplyDataFunctions } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
-
-const DEFAULT_BASE_URL = 'https://api.ifm.ai/v1';
-const DEFAULT_MODEL = 'IFM/K2-Horizon-375B-A23B';
-
-/** Shown when GET /models cannot be reached, so the picker is never empty. */
-const PUBLISHED_MODELS = [
-	'IFM/K2-Horizon-375B-A23B',
-	'IFM/K2-Horizon-MoVA-36B-A4B',
-	'IFM/K2-Horizon-32B',
-	'IFM/K2-Horizon-7B',
-	'IFM/K2-Horizon-3.7B',
-	'IFM/K2-Horizon-0.9B',
-];
 
 type ModelOptions = {
 	temperature?: number;
@@ -65,7 +54,7 @@ export class K2HorizonChatModel implements INodeType {
 		outputNames: ['Model'],
 		credentials: [
 			{
-				name: 'k2HorizonApi',
+				name: CREDENTIAL_NAME,
 				required: true,
 			},
 		],
@@ -77,43 +66,8 @@ export class K2HorizonChatModel implements INodeType {
 				type: 'notice',
 				default: '',
 			},
-			{
-				displayName: 'Model Name or ID',
-				name: 'model',
-				type: 'options',
-				typeOptions: {
-					loadOptionsMethod: 'getModels',
-				},
-				default: DEFAULT_MODEL,
-				required: true,
-				description:
-					'Model to call. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
-			},
-			{
-				displayName: 'Reasoning Effort',
-				name: 'reasoningEffort',
-				type: 'options',
-				default: 'high',
-				options: [
-					{
-						name: 'High (Recommended)',
-						value: 'high',
-						description: 'The level IFM tunes and evaluates K2 Horizon at',
-					},
-					{
-						name: 'Low',
-						value: 'low',
-						description: 'Smallest thinking budget. Validate on your own evals first.',
-					},
-					{
-						name: 'Medium',
-						value: 'medium',
-						description: 'Balanced thinking budget. Validate on your own evals first.',
-					},
-				],
-				description:
-					'Thinking budget. High also produces fewer malformed tool arguments, which matters most inside an agent loop.',
-			},
+			modelProperty,
+			reasoningEffortProperty,
 			{
 				displayName: 'Options',
 				name: 'options',
@@ -195,83 +149,29 @@ export class K2HorizonChatModel implements INodeType {
 	};
 
 	methods = {
-		loadOptions: {
-			async getModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				let ids: string[] = [];
-
-				try {
-					const credentials = await this.getCredentials('k2HorizonApi');
-					const baseUrl = ((credentials.url as string) || DEFAULT_BASE_URL).replace(/\/+$/, '');
-
-					const response = (await this.helpers.httpRequestWithAuthentication.call(
-						this,
-						'k2HorizonApi',
-						{ method: 'GET', url: `${baseUrl}/models`, json: true },
-					)) as { data?: Array<{ id?: string }> };
-
-					ids = (response.data ?? [])
-						.map((model) => model.id)
-						.filter((id): id is string => Boolean(id));
-				} catch {
-					// Listing models is a convenience, never a reason to break the
-					// parameter panel -- fall through to the published catalogue.
-				}
-
-				// A key scoped to a single model can 403 on /models, and an
-				// unreachable gateway returns nothing. Either way the picker stays
-				// usable rather than empty.
-				if (ids.length === 0) return PUBLISHED_MODELS.map((id) => ({ name: id, value: id }));
-
-				return ids.sort().map((id) => ({ name: id, value: id }));
-			},
-		},
+		loadOptions: { getModels },
 	};
 
 	async supplyData(this: ISupplyDataFunctions, itemIndex: number) {
-		const credentials = await this.getCredentials('k2HorizonApi');
+		const credentials = await this.getCredentials(CREDENTIAL_NAME);
 		const model = this.getNodeParameter('model', itemIndex) as string;
 		const reasoningEffort = this.getNodeParameter(
 			'reasoningEffort',
 			itemIndex,
 			'high',
-		) as 'low' | 'medium' | 'high';
+		) as ReasoningEffort;
 		const options = this.getNodeParameter('options', itemIndex, {}) as ModelOptions;
 
 		// An agent loop resends a growing transcript, so a stable ID is where
 		// prefix caching pays off. Minting one per run keeps it opaque and
 		// unshared, which is what the routing guidance asks for.
 		const sessionId = options.sessionId || randomUUID();
-		const headers = { 'X-Session-ID': sessionId };
 
-		// Requests go through n8n's HTTP helper so the credential applies the
-		// bearer token and the instance's proxy settings are respected -- and so
-		// the package needs no HTTP client of its own.
 		const client = new K2HorizonChatModelClient(
 			model,
+			createRequests(this, { 'X-Session-ID': sessionId }, options.timeout),
 			{
-				httpRequest: async (method, url, body) => ({
-					body: await this.helpers.httpRequestWithAuthentication.call(this, 'k2HorizonApi', {
-						method,
-						url,
-						body,
-						headers,
-						json: true,
-						timeout: options.timeout,
-					}),
-				}),
-				openStream: async (method, url, body) => ({
-					body: await this.helpers.httpRequestWithAuthentication.call(this, 'k2HorizonApi', {
-						method,
-						url,
-						body,
-						headers,
-						encoding: 'stream',
-						timeout: options.timeout,
-					}),
-				}),
-			},
-			{
-				baseURL: (credentials.url as string) || DEFAULT_BASE_URL,
+				baseURL: getBaseUrl(credentials),
 				apiKey: credentials.apiKey as string,
 				reasoningEffort,
 				temperature: options.temperature,
