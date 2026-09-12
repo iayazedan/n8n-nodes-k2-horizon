@@ -15,10 +15,11 @@
 		"preserveConstEnums": true,
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
-		"incremental": true,
-		// Keep the incremental cache out of outDir: `files: ["dist"]` would
-		// otherwise ship it, and it was 75% of the published tarball.
-		"tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
+		// No incremental build cache. Inside outDir it shipped to npm (75% of the
+		// tarball); outside it, deleting dist left tsc thinking its outputs were
+		// current, so `build` exited 0 with dist/nodes/shared/model.js missing.
+		// A full build of this package takes about two seconds.
+		"incremental": false,
 		"declaration": true,
 		"sourceMap": true,
 		"skipLibCheck": true,

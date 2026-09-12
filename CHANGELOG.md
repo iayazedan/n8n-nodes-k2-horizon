@@ -12,8 +12,18 @@ No change to how either node behaves.
 
 - The published tarball no longer carries `dist/tsconfig.tsbuildinfo`, a
   TypeScript incremental-build cache with no runtime value that made up roughly
-  three quarters of the unpacked package. The cache now lives under
-  `node_modules/.cache/`, so incremental builds still work locally.
+  three quarters of the unpacked package. Incremental builds are now off
+  entirely rather than relocated: a cache kept outside `outDir` drifts out of
+  sync with it, and a stale one let `build` succeed while leaving compiled
+  files missing from `dist`. A full build takes about two seconds.
+
+### Added
+
+- A test suite (`npm test`), run in CI. It covers the request the gateway
+  expects, JSON and JSON Schema output, retry and backoff behaviour, tool
+  schema conversion, and error mapping — all against a fake gateway, so no API
+  key is needed. `npm run test:live` additionally exercises the real API when
+  `IFM_API_KEY` is set.
 
 ### Notes
 

@@ -32,7 +32,10 @@
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release",
-		"prepublishOnly": "n8n-node prerelease"
+		"prepublishOnly": "n8n-node prerelease",
+		"pretest": "npm run build",
+		"test": "node --test test/*.test.js",
+		"test:live": "node --test test/live.test.js"
 	},
 	"files": [
 		"dist"

@@ -120,7 +120,7 @@ function parseJson(text: string): unknown {
  * it, back off exponentially with jitter -- a batch of items that all hit the
  * per-minute guard at once must not retry in lockstep.
  */
-function retryWaitMs(headers: IDataObject | undefined, attempt: number): number {
+export function retryWaitMs(headers: IDataObject | undefined, attempt: number): number {
 	const retryAfter = Number(headers?.['retry-after'] ?? headers?.['Retry-After']);
 	if (Number.isFinite(retryAfter) && retryAfter > 0) {
 		return Math.min(retryAfter * 1000, MAX_RETRY_WAIT_MS);
