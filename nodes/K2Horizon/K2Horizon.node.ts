@@ -28,6 +28,7 @@ import {
 type OutputFormat = 'text' | 'jsonObject' | 'jsonSchema';
 
 type MessageOptions = {
+	maxRetries?: number;
 	maxTokens?: number;
 	temperature?: number;
 	topP?: number;
@@ -200,6 +201,15 @@ export class K2Horizon implements INodeType {
 				default: {},
 				options: [
 					{
+						displayName: 'Max Retries',
+						name: 'maxRetries',
+						type: 'number',
+						typeOptions: { minValue: 0, maxValue: 10 },
+						default: 2,
+						description:
+							'Retries after a rate limit or a transient server error, waiting as long as the Retry-After header asks and backing off exponentially otherwise',
+					},
+					{
 						displayName: 'Max Tokens',
 						name: 'maxTokens',
 						type: 'number',
@@ -298,7 +308,7 @@ export class K2Horizon implements INodeType {
 					createRequests(
 						this,
 						{ 'X-Session-ID': options.sessionId || executionSessionId },
-						options.timeout,
+						{ timeout: options.timeout, maxRetries: options.maxRetries },
 					),
 					{
 						baseURL: getBaseUrl(credentials),

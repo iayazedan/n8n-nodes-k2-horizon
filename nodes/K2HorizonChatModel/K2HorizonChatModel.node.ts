@@ -90,7 +90,8 @@ export class K2HorizonChatModel implements INodeType {
 						type: 'number',
 						typeOptions: { minValue: 0, maxValue: 10 },
 						default: 2,
-						description: 'Retry attempts for rate limits and transient server errors',
+						description:
+							'Retries after a rate limit or a transient server error, waiting as long as the Retry-After header asks and backing off exponentially otherwise',
 					},
 					{
 						displayName: 'Max Tokens',
@@ -169,7 +170,11 @@ export class K2HorizonChatModel implements INodeType {
 
 		const client = new K2HorizonChatModelClient(
 			model,
-			createRequests(this, { 'X-Session-ID': sessionId }, options.timeout),
+			createRequests(
+				this,
+				{ 'X-Session-ID': sessionId },
+				{ timeout: options.timeout, maxRetries: options.maxRetries },
+			),
 			{
 				baseURL: getBaseUrl(credentials),
 				apiKey: credentials.apiKey as string,
