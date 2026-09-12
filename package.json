@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-k2-horizon",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n community node for K2 Horizon (IFM) — a chat model for the AI Agent plus a node for direct calls, with native tool calling, reasoning effort and structured output",
 	"license": "MIT",
 	"homepage": "https://github.com/iayazedan/n8n-nodes-k2-horizon",

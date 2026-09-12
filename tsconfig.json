@@ -16,6 +16,9 @@
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"incremental": true,
+		// Keep the incremental cache out of outDir: `files: ["dist"]` would
+		// otherwise ship it, and it was 75% of the published tarball.
+		"tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
 		"declaration": true,
 		"sourceMap": true,
 		"skipLibCheck": true,

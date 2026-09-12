@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.1 — 2026-09-12
+
+No change to how either node behaves.
+
+### Fixed
+
+- The published tarball no longer carries `dist/tsconfig.tsbuildinfo`, a
+  TypeScript incremental-build cache with no runtime value that made up roughly
+  three quarters of the unpacked package. The cache now lives under
+  `node_modules/.cache/`, so incremental builds still work locally.
+
+### Notes
+
+- Published from a rebuilt repository. The provenance attestation for 0.1.0
+  referenced commits that are no longer part of the public history, so it could
+  not be verified against the source; 0.1.1 attests commits that are.
+
 ## 0.1.0 — 2026-09-12
 
 First release.
