@@ -184,8 +184,49 @@ export function toWireMessages(messages: Message[]): WireMessage[] {
 	return wire;
 }
 
+/** What LangChain's single-input tools accept, and what the gateway demands. */
+const SINGLE_STRING_INPUT = {
+	type: 'object',
+	properties: { input: { type: 'string' } },
+	required: ['input'],
+};
+
+/** A Zod schema that slipped through unconverted still carries its `_def`. */
+function isJsonSchemaObject(value: unknown): value is Record<string, unknown> {
+	if (typeof value !== 'object' || value === null || '_def' in value) return false;
+
+	return (value as { type?: unknown }).type === 'object' || 'properties' in value;
+}
+
+/**
+ * The SDK converts a tool's schema only when it recognises the Zod instance.
+ * n8n's built-in tools bundle their own copy of Zod, so `instanceof` fails and
+ * the raw Zod object comes straight back -- which the gateway rejects with
+ * "Tool function parameters must describe a JSON object", failing the whole
+ * agent step. Verified against the live gateway.
+ *
+ * Those tools (Calculator, Wikipedia, Think) are LangChain single-input tools:
+ * one string, which their own schema names `input`. Falling back to that shape
+ * keeps them working instead of losing the tool entirely.
+ */
+function toParametersSchema(tool: Extract<Tool, { type: 'function' }>): unknown {
+	const converted = getParametersJsonSchema(tool);
+	if (isJsonSchemaObject(converted)) return converted;
+
+	// Zod v4 converts itself, even when it is a copy the SDK does not recognise.
+	const schema = tool.inputSchema as { toJSONSchema?: () => unknown } | undefined;
+	if (typeof schema?.toJSONSchema === 'function') {
+		const fromZod = schema.toJSONSchema();
+		if (isJsonSchemaObject(fromZod)) return fromZod;
+	}
+
+	return SINGLE_STRING_INPUT;
+}
+
 function toWireTools(tools: Tool[]): WireRequest['tools'] {
-	const functions = tools.filter((tool) => tool.type === 'function');
+	const functions = tools.filter(
+		(tool): tool is Extract<Tool, { type: 'function' }> => tool.type === 'function',
+	);
 	if (functions.length === 0) return undefined;
 
 	return functions.map((tool) => ({
@@ -193,7 +234,7 @@ function toWireTools(tools: Tool[]): WireRequest['tools'] {
 		function: {
 			name: tool.name,
 			description: tool.description,
-			parameters: getParametersJsonSchema(tool),
+			parameters: toParametersSchema(tool),
 		},
 	}));
 }
