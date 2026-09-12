@@ -58,8 +58,12 @@ on:
   push:
     tags:
       # Matches 0.1.0, 1.2.3, 2.0.0-rc.1, etc.
-      # See "TAG CONVENTION" above if you prefer tags with a "v" prefix.
+      # Both forms are accepted: release-it derives the prefix from the newest
+      # existing tag, so a single "v" tag would switch it to v${version} for
+      # good -- and a filter matching only one form would then silently stop
+      # publishing.
       - '*.*.*'
+      - 'v*.*.*'
 
 jobs:
   publish:
@@ -96,4 +100,4 @@ jobs:
           [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
           npm run release
         env:
-          NPM_TOKEN: $
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
