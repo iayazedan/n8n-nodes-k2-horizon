@@ -4,7 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.1.1 — 2026-09-12
+## 0.1.2 — 2026-09-14
+
+### Changed
+
+- Both nodes and the credential now show the K2 Horizon wordmark instead of the
+  scaffold's placeholder. Icons ship inside the package, so a release was the
+  only way to change what installed users see — 0.1.1 displays the placeholder
+  in n8n regardless of what the repository contains.
+- The README now leads with the logo, which is what npm shows on the package
+  page. npm has no per-package logo field of its own.
+
+The artwork is a raster wordmark embedded in an SVG wrapper. n8n accepts only
+PNG or SVG for icons, and a plain PNG fails cloud-eligible lint
+(`node-class-description-icon-not-svg`), so the image is wrapped rather than
+converted or traced — tracing would mean guessing at the typeface. This costs
+about 30 kB per icon, taking the packed tarball from 20.8 kB to roughly 40 kB.
+
+## 0.1.1 — 2026-09-13
 
 No change to how either node behaves.
 

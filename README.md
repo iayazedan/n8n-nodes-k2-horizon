@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/iayazedan/n8n-nodes-k2-horizon/main/docs/k2horizon.png" alt="K2 Horizon" width="120" />
+
 # n8n-nodes-k2-horizon
 
 This is an n8n community node. It lets you use [K2 Horizon](https://ifm.ai/blog/k2/) in your n8n workflows.
