@@ -38,7 +38,8 @@
 		"test:live": "node --test test/live.test.js"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"!dist/docs/**"
 	],
 	"publishConfig": {
 		"access": "public"

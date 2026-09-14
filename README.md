@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/iayazedan/n8n-nodes-k2-horizon/main/icons/k2horizon.svg" alt="K2 Horizon" width="120" />
+<img src="https://raw.githubusercontent.com/iayazedan/n8n-nodes-k2-horizon/main/docs/k2horizon.png" alt="K2 Horizon" width="120" />
 
 # n8n-nodes-k2-horizon
 
